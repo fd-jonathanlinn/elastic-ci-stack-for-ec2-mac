@@ -181,12 +181,18 @@ Resources:
                   diskutil apfs resizeContainer $APFSCONT 0
                   systemsetup -setcomputersleep never
                   user=ec2-user
-                  su - "${!user}" -c 'brew install buildkite/buildkite/buildkite-agent'
+                  sudo -u "${!user}" -i <<'EOF'
+                  brew install buildkite/buildkite/buildkite-agent
                   config="$(brew --prefix)"/etc/buildkite-agent/buildkite-agent.cfg
+                  until [ -f "${!config}" ]
+                  do
+                    sleep 10
+                  done
                   sed -i '' "s/xxx/${BuildkiteAgentToken}/g" "${!config}"
                   echo "tags=\"queue=${BuildkiteAgentQueue},buildkite-mac-stack=%v\"" >> "${!config}"
-                  echo "tags-from-ec2=true" >> "${!config}"
-                  su - "${!user}" -c 'brew services start buildkite/buildkite/buildkite-agent'
+                  echo "tags-from-ec2-meta-data=true" >> "${!config}"
+                  brew services start buildkite/buildkite/buildkite-agent
+                  EOF
               - |
                 #!/bin/bash
                 echo "UserData was disabled"
