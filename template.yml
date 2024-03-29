@@ -264,6 +264,12 @@ Resources:
               Values:
                 - UNLESS_EMPTY
 
+  IAMInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles: [ !Ref IAMRole ]
+
   IAMRole:
     Type: AWS::IAM::Role
     Properties:
@@ -414,7 +420,7 @@ Resources:
               VolumeType: gp3
         SecurityGroupIds: !Ref SecurityGroupIds
         IamInstanceProfile:
-          Arn: !If [ IamInstanceProfileProvided, !Ref IamInstanceProfile, !Ref AWS::NoValue ] 
+          Arn: !GetAtt "IAMInstanceProfile.Arn"
         TagSpecifications:
             - ResourceType: instance
               Tags:
