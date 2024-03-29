@@ -441,7 +441,6 @@ Resources:
               - UseInstanceUserData
               - !Sub |
                   #!/bin/bash
-                  set -x 
                   PDISK=$(diskutil list physical external | head -n1 | cut -d" " -f1)
                   APFSCONT=$(diskutil list physical external | grep "Apple_APFS" | tr -s " " | cut -d" " -f8)
                   yes | diskutil repairDisk $PDISK
@@ -455,7 +454,12 @@ Resources:
                   echo "tags=\"queue=${BuildkiteAgentQueue},buildkite-mac-stack=%v\"" >> "${!config}" &&
                   echo "tags-from-ec2-meta-data=true" >> "${!config}" &&
                   brew services start buildkite/buildkite/buildkite-agent &&
+                  aws s3 cp s3://${LocalSecretsBucket}/private_ssh_key /Users/ec2-user/.ssh/id_rsa &&
+                  chmod 600 /Users/ec2-user/.ssh/id_rsa
                   EOF
+                - {
+                    LocalSecretsBucket: !If [ CreateSecretsBucket, !Ref ManagedSecretsBucket, !Ref SecretsBucket ],
+                  }
               - |
                 #!/bin/bash
                 echo "UserData was disabled"
